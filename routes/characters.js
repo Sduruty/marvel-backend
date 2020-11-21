@@ -1,24 +1,63 @@
 const express = require("express");
 const axios = require("axios");
 const router = express.Router();
-const md5 = require("md5");
+const MD5 = require("crypto-js/md5");
+require("dotenv").config();
 
-const date = new Date();
-const ts = Math.floor(date.getTime() / 1000);
-
-const public_key = process.env.PUBLIC_KEY;
-const private_key = process.env.PRIVATE_KEY;
-const hash = md5(ts + private_key + public_key);
-
-router.get("/", async (req, res) => {
+router.get("/characters", async (req, res) => {
   try {
-    //urlMarvel="http://gateway.marvel.com/v1/public/characters"
-    const response = await axios.get(
-      `http://gateway.marvel.com/v1/public/characters?limit=100&ts=${ts}&apikey=${public_key}&hash=${hash}`
-    );
-    res.status(200).json(response.data);
-  } catch (error) {
-    res.status(400).json(error.message);
+    let ts = req.query.ts;
+    let limit = req.query.limit;
+    let offset = req.query.offset;
+    let orderBy = req.query.orderBy;
+    req.query.nameStartsWith === undefined
+      ? (search = "")
+      : (search = "&nameStartsWith=" + req.query.nameStartsWith);
+
+    const apiKey = process.env.PUBLIC_KEY;
+    const privateKey = process.env.PRIVATE_KEY;
+    const hash = MD5(ts + privateKey + apiKey);
+
+    marvelUrl =
+      "http://gateway.marvel.com/v1/public/characters?ts=" +
+      ts +
+      "&apikey=" +
+      apiKey +
+      "&hash=" +
+      hash +
+      "&limit=" +
+      limit +
+      "&offset=" +
+      offset +
+      "&orderBy=" +
+      orderBy +
+      search;
+
+    const response = await axios.get(`${marvelUrl}`);
+
+    res.json(response.data);
+  } catch (err) {
+    console.log(err.message);
   }
 });
+
+// Recupérer l'id puis faire une requete axios a l'api marvel
+
+router.get("/character/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+    const ts = req.query.ts;
+    const apiKey = process.env.PUBLIC_KEY;
+    const privateKey = process.env.PRIVATE_KEY;
+    const hash = MD5(ts + privateKey + apiKey);
+
+    characterReq = `http://gateway.marvel.com/v1/public/characters/${id}?ts=${ts}&apikey=${apiKey}&hash=${hash}`;
+
+    const response = await axios.get(`${characterReq}`);
+    res.json(response.data);
+  } catch (err) {
+    console.log(err.message);
+  }
+});
+
 module.exports = router;

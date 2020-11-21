@@ -1,27 +1,25 @@
 const express = require("express");
-const formidable= require("express-formidable");
+const formidable = require("express-formidable");
+const mongoose = require("mongoose");
 const cors = require("cors");
-//const md5 = require("md5");
-//const uid2 = require("uid2");
-//const axios = require("axios");
 require("dotenv").config();
-
 const app = express();
+app.use(formidable());
 app.use(cors());
-//Keys
-const publicKey = process.env.PUBLIC_KEY;
-const privateKey = process.env.PRIVATE_KEY;
-//Pages
-const comics=require("./routes/comics");
-const characters=require("./routes/characters");
+
+const comics = require("./routes/comics");
+const characters = require("./routes/characters");
+const favs = require("./routes/favs");
 app.use(comics);
 app.use(characters);
+app.use(favs);
 
-
-
+mongoose.connect(process.env.MONGODB_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  useCreateIndex: true,
+});
 
 app.listen(process.env.PORT, () => {
-  console.log(
-    `Server Started on port ${process.env.PORT}, to shut it down, press Ctrl+C`
-  );
+  console.log("Server started");
 });
